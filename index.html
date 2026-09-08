@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Португалія — школи · садки · зони</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+ html,body{margin:0;height:100%;font-family:system-ui,Arial,sans-serif}
+ #map{position:absolute;inset:0}
+ .panel{position:absolute;top:10px;left:10px;z-index:2;background:#fff;border-radius:8px;
+   box-shadow:0 1px 6px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;max-width:230px}
+ .panel h1{font-size:14px;margin:0 0 6px}
+ .panel label{display:block;margin:3px 0;cursor:pointer;line-height:1.5}
+ .sw{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-2px;border:2px solid #fff;box-shadow:0 0 0 1px #999}
+ .note{color:#666;font-size:11px;margin-top:8px;border-top:1px solid #eee;padding-top:6px}
+ .maplibregl-popup-content{font:13px system-ui;max-width:250px}
+ .pt{font-weight:600;display:block;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="panel">
+ <h1>🇵🇹 Школи · садки · зони</h1>
+ <label><input type="checkbox" id="t-zones" checked><span class="sw" style="background:#2e9c3e"></span>Зони (🟢🟡🔴)</label>
+ <label><input type="checkbox" id="t-pub" checked><span class="sw" style="background:#1f6fd6"></span>Держшколи</label>
+ <label><input type="checkbox" id="t-priv" checked><span class="sw" style="background:#e8890c"></span>Приватні школи</label>
+ <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#8b3ffb"></span>Міжнародні школи</label>
+ <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#12a19a"></span>Ясла/садки</label>
+ <label><input type="checkbox" id="t-social" checked><span class="sw" style="background:#d23b3b"></span>Соцжитло (Cascais GIS)</label>
+ <div class="note">v1 — кільце Parede + соцжитло Cascais. Далі: усі школи PT, садки, Leiria. Клік по точці = деталі.</div>
+</div>
+<script>
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/liberty',
+  center: [-9.34, 38.70],
+  zoom: 11.5
+});
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+
+const RATING = {green:'#2e9c3e', yellow:'#e0b400', red:'#d23b3b'};
+
+async function gj(u){ const r = await fetch(u); return r.json(); }
+
+map.on('load', async () => {
+  const [schools, creches, zones, social] = await Promise.all([
+    gj('./data/schools.geojson'), gj('./data/creches.geojson'),
+    gj('./data/zones.geojson'), gj('./data/social_cascais.geojson')
+  ]);
+  map.addSource('schools', {type:'geojson', data:schools});
+  map.addSource('creches', {type:'geojson', data:creches});
+  map.addSource('zones',   {type:'geojson', data:zones});
+  map.addSource('social',  {type:'geojson', data:social});
+
+  map.addLayer({id:'social', source:'social', type:'circle', paint:{
+    'circle-radius':['interpolate',['linear'],['coalesce',['get','fogos'],0],0,3,50,7,200,13],
+    'circle-color':'#d23b3b',
+    'circle-opacity':0.5,
+    'circle-stroke-color':'#fff','circle-stroke-width':0.5
+  }});
+  map.addLayer({id:'zones', source:'zones', type:'circle', paint:{
+    'circle-radius':17,
+    'circle-color':['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888'],
+    'circle-opacity':0.35,
+    'circle-stroke-width':2,
+    'circle-stroke-color':['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888']
+  }});
+  const schoolLayer = (id,cat,color)=>map.addLayer({id, source:'schools', type:'circle',
+    filter:['==',['get','cat'],cat],
+    paint:{'circle-radius':6,'circle-color':color,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+  schoolLayer('pub','pub','#1f6fd6');
+  schoolLayer('priv','priv','#e8890c');
+  schoolLayer('intl','intl','#8b3ffb');
+  map.addLayer({id:'creches', source:'creches', type:'circle', paint:{
+    'circle-radius':6,'circle-color':'#12a19a','circle-stroke-color':'#fff','circle-stroke-width':2}});
+
+  const popup = (html, lngLat)=> new maplibregl.Popup({maxWidth:'250px'}).setLngLat(lngLat).setHTML(html).addTo(map);
+  const esc = s => (s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const onClick = (layer, fn)=>{
+    map.on('click', layer, e=>{ const f=e.features[0]; popup(fn(f.properties), e.lngLat); });
+    map.on('mouseenter', layer, ()=> map.getCanvas().style.cursor='pointer');
+    map.on('mouseleave', layer, ()=> map.getCanvas().style.cursor='');
+  };
+  ['pub','priv','intl'].forEach(l=>onClick(l, p=>`<span class="pt">${esc(p.name)}</span>${esc(p.info)}`));
+  onClick('creches', p=>`<span class="pt">${esc(p.name)}</span>${esc(p.info)}`);
+  onClick('zones',   p=>`<span class="pt">Зона: ${esc(p.name)}</span>${esc(p.info)}`);
+  onClick('social',  p=>`<span class="pt">Соцжитло: ${esc(p.local)||'—'}</span>${esc(p.freg)} · ${p.fogos||0} fogos (${p.bldg||0} буд.)`);
+
+  const bind=(el,layer)=>{const c=document.getElementById(el);c.addEventListener('change',()=>{
+    map.setLayoutProperty(layer,'visibility', c.checked?'visible':'none');});};
+  bind('t-zones','zones'); bind('t-pub','pub'); bind('t-priv','priv');
+  bind('t-intl','intl'); bind('t-creches','creches'); bind('t-social','social');
+});
+</script>
+</body>
+</html>
