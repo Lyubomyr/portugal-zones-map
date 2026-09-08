@@ -22,9 +22,11 @@
  .note{color:#666;font-size:11px;margin-top:8px;border-top:1px solid #eee;padding-top:6px}
  .maplibregl-popup-content{font:13px system-ui;max-width:260px}
  .pt{font-weight:600;display:block;margin-bottom:2px}
- .mk{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-   border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;cursor:pointer}
- .mk>span{transform:rotate(45deg);font-size:13px;line-height:1}
+ .maplibregl-marker{z-index:3}
+ .mk{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+   border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s}
+ .mk:hover{transform:rotate(-45deg) scale(1.18);z-index:4}
+ .mk>span{transform:rotate(45deg);font-size:17px;line-height:1}
 </style>
 </head>
 <body>
@@ -48,7 +50,7 @@
  <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
  <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
  <label><input type="checkbox" id="t-social" checked><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
- <div class="note">🟢 найкращі: сильна básica + мало соцжитла. 🟡 нормальні (більшість). 🔴 уникати: слабка школа + щільний кластер соцжитла. Академічні деталі — у кліку по піну. Зони — межі впливу шкіл (~20, приблизні). Панорамуй → Oeiras.</div>
+ <div class="note">🟢 найкращі: сильна básica + мало соцжитла. 🟡 нормальні (більшість). 🔴 уникати: задокументоване насильство. Академічні деталі — у кліку по піну. Зони — межі впливу шкіл (~20, приблизні). Панорамуй → Oeiras.</div>
 </div>
 <script>
 const RATING={green:'#15803d',yellow:'#eab308',red:'#e11d48'};
