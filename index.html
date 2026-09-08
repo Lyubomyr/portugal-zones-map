@@ -41,17 +41,17 @@
    </select>
  </div>
  <div class="hd">Зони (школа × соцжитло)</div>
- <label><input type="checkbox" id="t-zones" checked><span class="zsw" style="background:#2e9c3e"></span><span class="zsw" style="background:#e0b400"></span><span class="zsw" style="background:#d23b3b"></span>площі 🟢🟡🔴</label>
+ <label><input type="checkbox" id="t-zones" checked><span class="zsw" style="background:#15803d"></span><span class="zsw" style="background:#eab308"></span><span class="zsw" style="background:#e11d48"></span>площі 🟢🟡🔴</label>
  <div class="hd">Точки</div>
  <label><input type="checkbox" id="t-pub" checked><span class="sw" style="background:#0050ef"></span>Держшколи 🏫</label>
  <label><input type="checkbox" id="t-priv" checked><span class="sw" style="background:#ff7a00"></span>Приватні школи 🏫</label>
  <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
  <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
  <label><input type="checkbox" id="t-social" checked><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
- <div class="note">Зони — межі впливу шкіл (~20, приблизні). Клік по зоні/піну = деталі. Панорамуй праворуч → Oeiras.</div>
+ <div class="note">🟢 найкращі: сильна básica + мало соцжитла. 🟡 нормальні (більшість). 🔴 уникати: слабка школа + щільний кластер соцжитла. Академічні деталі — у кліку по піну. Зони — межі впливу шкіл (~20, приблизні). Панорамуй → Oeiras.</div>
 </div>
 <script>
-const RATING={green:'#2e9c3e',yellow:'#e0b400',red:'#d23b3b'};
+const RATING={green:'#15803d',yellow:'#eab308',red:'#e11d48'};
 const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a'};
 const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶'};
 function raster(t,a){return {version:8,sources:{r:{type:'raster',tiles:t,tileSize:256,attribution:a}},layers:[{id:'r',type:'raster',source:'r'}]};}
@@ -77,8 +77,8 @@ function addLayers(){
     map.addSource('zones',{type:'geojson',data:DATA.zones});
     map.addSource('social',{type:'geojson',data:DATA.social});
     const rc=['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888'];
-    map.addLayer({id:'zones-fill',source:'zones',type:'fill',layout:{visibility:vis.zones?'visible':'none'},paint:{'fill-color':rc,'fill-opacity':0.35}});
-    map.addLayer({id:'zones-line',source:'zones',type:'line',layout:{visibility:vis.zones?'visible':'none'},paint:{'line-color':rc,'line-width':2,'line-opacity':0.9}});
+    map.addLayer({id:'zones-fill',source:'zones',type:'fill',layout:{visibility:vis.zones?'visible':'none'},paint:{'fill-color':rc,'fill-opacity':0.4}});
+    map.addLayer({id:'zones-line',source:'zones',type:'line',layout:{visibility:vis.zones?'visible':'none'},paint:{'line-color':rc,'line-width':2.5,'line-opacity':1}});
     map.addLayer({id:'social',source:'social',type:'circle',layout:{visibility:vis.social?'visible':'none'},paint:{
       'circle-radius':['interpolate',['linear'],['coalesce',['get','fogos'],0],0,3,50,8,200,15],
       'circle-color':'#1a1a1a','circle-opacity':0.7,'circle-stroke-color':'#fff','circle-stroke-width':0.8}});
@@ -100,9 +100,11 @@ function addMarkers(){
 }
 let clicksBound=false;
 function ensureClicks(){ if(clicksBound||!map.getLayer('zones-fill'))return; clicksBound=true; bindLayerClicks(); }
+// Bulletproof init: poll until style+data ready, then add (independent of load/idle events).
 const _initTimer=setInterval(()=>{
   if(dataReady && map.isStyleLoaded()){ clearInterval(_initTimer); addLayers(); addMarkers(); ensureClicks(); }
 },150);
+// Re-add geojson layers after a basemap switch (setStyle removes them; markers persist).
 map.on('style.load',()=>{ if(dataReady){ addLayers(); ensureClicks(); } });
 
 function toggleMarkers(cat,on){markers[cat].forEach(el=>{el.style.display=on?'':'none';});}
