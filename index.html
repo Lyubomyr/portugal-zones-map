@@ -99,8 +99,12 @@ function addMarkers(){
   DATA.creches.features.forEach(f=>mk(f,'creche'));
 }
 function tryAdd(){ if(dataReady && map.isStyleLoaded()){ addLayers(); addMarkers(); } }
-map.on('load',()=>{ bindLayerClicks(); tryAdd(); });
+let clicksBound=false;
+function ensureClicks(){ if(clicksBound||!map.getLayer('zones-fill'))return; clicksBound=true; bindLayerClicks(); }
+map.on('load',()=>{ tryAdd(); });
 map.on('style.load',tryAdd);
+map.on('styledata',tryAdd);
+map.on('idle',()=>{ tryAdd(); ensureClicks(); });
 
 function toggleMarkers(cat,on){markers[cat].forEach(el=>{el.style.display=on?'':'none';});}
 document.getElementById('t-zones').addEventListener('change',e=>{vis.zones=e.target.checked;
