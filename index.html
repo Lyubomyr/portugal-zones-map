@@ -34,9 +34,9 @@
  <div class="hd">Тип карти</div>
  <div class="row">
    <select id="basemap">
-     <option value="liberty">Вулиці (кольорові)</option>
-     <option value="bright">Світла</option>
+     <option value="osm">Вулиці (OSM)</option>
      <option value="satellite">Супутник</option>
+     <option value="liberty">Кольорова (вектор)</option>
      <option value="positron">Мінімал (сіра)</option>
    </select>
  </div>
@@ -54,18 +54,17 @@
 const RATING={green:'#2e9c3e',yellow:'#e0b400',red:'#d23b3b'};
 const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a'};
 const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶'};
+function raster(t,a){return {version:8,sources:{r:{type:'raster',tiles:t,tileSize:256,attribution:a}},layers:[{id:'r',type:'raster',source:'r'}]};}
 const STYLES={
+  osm:raster(['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png','https://b.tile.openstreetmap.org/{z}/{x}/{y}.png','https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'],'© OpenStreetMap'),
+  satellite:raster(['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],'Imagery © Esri'),
   liberty:'https://tiles.openfreemap.org/styles/liberty',
-  bright:'https://tiles.openfreemap.org/styles/bright',
-  positron:'https://tiles.openfreemap.org/styles/positron',
-  satellite:{version:8,glyphs:'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-    sources:{esri:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Imagery © Esri'}},
-    layers:[{id:'esri',type:'raster',source:'esri'}]}
+  positron:'https://tiles.openfreemap.org/styles/positron'
 };
 const vis={zones:true,pub:true,priv:true,intl:true,creches:true,social:true};
 let DATA=null, dataReady=false, markersAdded=false;
 const markers={pub:[],priv:[],intl:[],creche:[]};
-const map=new maplibregl.Map({container:'map',style:STYLES.liberty,center:[-9.30,38.71],zoom:11});
+const map=new maplibregl.Map({container:'map',style:STYLES.osm,center:[-9.30,38.71],zoom:11});
 map.addControl(new maplibregl.NavigationControl(),'top-right');
 map.addControl(new maplibregl.ScaleControl(),'bottom-left');
 const gj=u=>fetch(u).then(r=>r.json());
