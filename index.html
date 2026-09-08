@@ -11,15 +11,20 @@
  html,body{margin:0;height:100%;font-family:system-ui,Arial,sans-serif}
  #map{position:absolute;inset:0}
  .panel{position:absolute;top:10px;left:10px;z-index:2;background:#fff;border-radius:8px;
-   box-shadow:0 1px 6px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;max-width:235px}
+   box-shadow:0 1px 6px rgba(0,0,0,.35);padding:10px 12px;font-size:13px;max-width:250px}
  .panel h1{font-size:14px;margin:0 0 6px}
- .panel label{display:block;margin:3px 0;cursor:pointer;line-height:1.5}
- .sw{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-2px;border:2px solid #fff;box-shadow:0 0 0 1px #999}
- .row{margin:2px 0 8px} .row select{width:100%;padding:3px;font-size:13px}
+ .panel label{display:block;margin:3px 0;cursor:pointer;line-height:1.6}
+ .sw{display:inline-block;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(45deg);margin:0 8px 0 2px;vertical-align:-3px;border:2px solid #fff;box-shadow:0 0 0 1px #888}
+ .cir{display:inline-block;width:14px;height:14px;border-radius:50%;margin:0 8px 0 2px;vertical-align:-2px;border:2px solid #fff;box-shadow:0 0 0 1px #888}
+ .zsw{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:4px;vertical-align:-2px;opacity:.65}
+ .row{margin:2px 0 8px} .row select{width:100%;padding:4px;font-size:13px}
  .hd{font-weight:600;margin:8px 0 2px;font-size:12px;color:#555}
  .note{color:#666;font-size:11px;margin-top:8px;border-top:1px solid #eee;padding-top:6px}
- .maplibregl-popup-content{font:13px system-ui;max-width:250px}
+ .maplibregl-popup-content{font:13px system-ui;max-width:260px}
  .pt{font-weight:600;display:block;margin-bottom:2px}
+ .mk{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+   border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;cursor:pointer}
+ .mk>span{transform:rotate(45deg);font-size:13px;line-height:1}
 </style>
 </head>
 <body>
@@ -29,94 +34,82 @@
  <div class="hd">Тип карти</div>
  <div class="row">
    <select id="basemap">
-     <option value="liberty">Вулиці (як Google)</option>
-     <option value="bright">Світла</option>
+     <option value="voyager">Вулиці (як Google)</option>
      <option value="satellite">Супутник</option>
      <option value="positron">Мінімал (сіра)</option>
+     <option value="liberty">Яскрава (вектор)</option>
    </select>
  </div>
- <div class="hd">Шари</div>
- <label><input type="checkbox" id="t-zones" checked><span class="sw" style="background:#2e9c3e"></span>Зони (🟢🟡🔴)</label>
- <label><input type="checkbox" id="t-pub" checked><span class="sw" style="background:#1f6fd6"></span>Держшколи</label>
- <label><input type="checkbox" id="t-priv" checked><span class="sw" style="background:#e8890c"></span>Приватні школи</label>
- <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#8b3ffb"></span>Міжнародні школи</label>
- <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#12a19a"></span>Ясла/садки</label>
- <label><input type="checkbox" id="t-social" checked><span class="sw" style="background:#d23b3b"></span>Соцжитло (Cascais GIS)</label>
- <div class="note">v1 — кільце Parede + соцжитло Cascais. Далі: усі школи PT, садки, Leiria. Клік по точці = деталі.</div>
+ <div class="hd">Зони (школа × соцжитло)</div>
+ <label><input type="checkbox" id="t-zones" checked><span class="zsw" style="background:#2e9c3e"></span><span class="zsw" style="background:#e0b400"></span><span class="zsw" style="background:#d23b3b"></span>площі 🟢🟡🔴</label>
+ <div class="hd">Точки</div>
+ <label><input type="checkbox" id="t-pub" checked><span class="sw" style="background:#0050ef"></span>Держшколи 🏫</label>
+ <label><input type="checkbox" id="t-priv" checked><span class="sw" style="background:#ff7a00"></span>Приватні школи 🏫</label>
+ <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
+ <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
+ <label><input type="checkbox" id="t-social" checked><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
+ <div class="note">Зони — рівень фрегезій (груба заливка). Пін-клік = деталі. Далі: садки з ресерчу, Oeiras-соцжитло, Leiria.</div>
 </div>
 <script>
-const RATING = {green:'#2e9c3e', yellow:'#e0b400', red:'#d23b3b'};
-const STYLES = {
-  liberty: 'https://tiles.openfreemap.org/styles/liberty',
-  bright:  'https://tiles.openfreemap.org/styles/bright',
-  positron:'https://tiles.openfreemap.org/styles/positron',
-  satellite: {version:8, sources:{esri:{type:'raster',
-      tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-      tileSize:256, attribution:'Imagery © Esri'}},
-    layers:[{id:'esri', type:'raster', source:'esri'}]}
+const RATING={green:'#2e9c3e',yellow:'#e0b400',red:'#d23b3b'};
+const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a'};
+const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶'};
+function raster(t,a){return {version:8,glyphs:'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',sources:{r:{type:'raster',tiles:t,tileSize:256,attribution:a}},layers:[{id:'r',type:'raster',source:'r'}]};}
+const STYLES={
+  voyager:raster(['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],'© OpenStreetMap © CARTO'),
+  positron:raster(['https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'],'© OpenStreetMap © CARTO'),
+  satellite:raster(['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],'Imagery © Esri'),
+  liberty:'https://tiles.openfreemap.org/styles/liberty'
 };
-const vis = {zones:true, pub:true, priv:true, intl:true, creches:true, social:true};
-let DATA = null;
+const vis={zones:true,pub:true,priv:true,intl:true,creches:true,social:true};
+let DATA=null; const markers={pub:[],priv:[],intl:[],creche:[]};
+const map=new maplibregl.Map({container:'map',style:STYLES.voyager,center:[-9.30,38.71],zoom:11});
+map.addControl(new maplibregl.NavigationControl(),'top-right');
+map.addControl(new maplibregl.ScaleControl(),'bottom-left');
+const gj=u=>fetch(u).then(r=>r.json());
+const esc=s=>(s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-const map = new maplibregl.Map({
-  container:'map', style:STYLES.liberty,
-  center:[-9.33, 38.71], zoom:11.5
-});
-map.addControl(new maplibregl.NavigationControl(), 'top-right');
-map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
-
-async function gj(u){ const r = await fetch(u); return r.json(); }
-
-function addData(){
-  if(!DATA || map.getSource('schools')) return;
-  map.addSource('schools',{type:'geojson',data:DATA.schools});
-  map.addSource('creches',{type:'geojson',data:DATA.creches});
-  map.addSource('zones',  {type:'geojson',data:DATA.zones});
-  map.addSource('social', {type:'geojson',data:DATA.social});
-  const V = id => (vis[id] ? 'visible':'none');
-  map.addLayer({id:'social',source:'social',type:'circle',layout:{visibility:V('social')},paint:{
-    'circle-radius':['interpolate',['linear'],['coalesce',['get','fogos'],0],0,3,50,7,200,13],
-    'circle-color':'#d23b3b','circle-opacity':0.5,'circle-stroke-color':'#fff','circle-stroke-width':0.5}});
-  map.addLayer({id:'zones',source:'zones',type:'circle',layout:{visibility:V('zones')},paint:{
-    'circle-radius':17,
-    'circle-color':['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888'],
-    'circle-opacity':0.35,'circle-stroke-width':2,
-    'circle-stroke-color':['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888']}});
-  const sl=(id,cat,color)=>map.addLayer({id,source:'schools',type:'circle',filter:['==',['get','cat'],cat],
-    layout:{visibility:V(id)},paint:{'circle-radius':6,'circle-color':color,'circle-stroke-color':'#fff','circle-stroke-width':2}});
-  sl('pub','pub','#1f6fd6'); sl('priv','priv','#e8890c'); sl('intl','intl','#8b3ffb');
-  map.addLayer({id:'creches',source:'creches',type:'circle',layout:{visibility:V('creches')},
-    paint:{'circle-radius':6,'circle-color':'#12a19a','circle-stroke-color':'#fff','circle-stroke-width':2}});
+function addLayers(){
+  if(!DATA || map.getSource('zones')) return;
+  map.addSource('zones',{type:'geojson',data:DATA.zones});
+  map.addSource('social',{type:'geojson',data:DATA.social});
+  const rc=['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888'];
+  map.addLayer({id:'zones-fill',source:'zones',type:'fill',layout:{visibility:vis.zones?'visible':'none'},paint:{'fill-color':rc,'fill-opacity':0.28}});
+  map.addLayer({id:'zones-line',source:'zones',type:'line',layout:{visibility:vis.zones?'visible':'none'},paint:{'line-color':rc,'line-width':2,'line-opacity':0.85}});
+  map.addLayer({id:'social',source:'social',type:'circle',layout:{visibility:vis.social?'visible':'none'},paint:{
+    'circle-radius':['interpolate',['linear'],['coalesce',['get','fogos'],0],0,3,50,8,200,15],
+    'circle-color':'#1a1a1a','circle-opacity':0.7,'circle-stroke-color':'#fff','circle-stroke-width':0.8}});
+  map.on('click','zones-fill',e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">Зона: ${esc(e.features[0].properties.name)}</span>${esc(e.features[0].properties.info)}`).addTo(map));
+  map.on('click','social',e=>{const p=e.features[0].properties;new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">Соцжитло: ${esc(p.local)||'—'}</span>${esc(p.freg)} · ${p.fogos||0} fogos (${p.bldg||0} буд.)`).addTo(map);});
 }
+map.on('style.load',addLayers);
 
-map.on('style.load', addData);
-
-const esc = s => (s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-function bindOnce(){
-  const popup=(html,ll)=>new maplibregl.Popup({maxWidth:'250px'}).setLngLat(ll).setHTML(html).addTo(map);
-  const onClick=(layer,fn)=>{
-    map.on('click',layer,e=>popup(fn(e.features[0].properties),e.lngLat));
-    map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
-    map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
-  };
-  ['pub','priv','intl'].forEach(l=>onClick(l,p=>`<span class="pt">${esc(p.name)}</span>${esc(p.info)}`));
-  onClick('creches',p=>`<span class="pt">${esc(p.name)}</span>${esc(p.info)}`);
-  onClick('zones',  p=>`<span class="pt">Зона: ${esc(p.name)}</span>${esc(p.info)}`);
-  onClick('social', p=>`<span class="pt">Соцжитло: ${esc(p.local)||'—'}</span>${esc(p.freg)} · ${p.fogos||0} fogos (${p.bldg||0} буд.)`);
-  const bind=(el,layer)=>{const c=document.getElementById(el);c.addEventListener('change',()=>{
-    vis[layer]=c.checked; if(map.getLayer(layer)) map.setLayoutProperty(layer,'visibility',c.checked?'visible':'none');});};
-  bind('t-zones','zones'); bind('t-pub','pub'); bind('t-priv','priv');
-  bind('t-intl','intl'); bind('t-creches','creches'); bind('t-social','social');
-  document.getElementById('basemap').addEventListener('change',e=>{ map.setStyle(STYLES[e.target.value]); });
+function pin(cat){const el=document.createElement('div');el.className='mk';el.style.background=COL[cat];el.innerHTML='<span>'+EMO[cat]+'</span>';return el;}
+function addMarkers(){
+  const mk=(f,cat)=>{const el=pin(cat);
+    new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(f.geometry.coordinates)
+      .setPopup(new maplibregl.Popup({offset:26}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${esc(f.properties.info)}`))
+      .addTo(map); markers[cat].push(el); };
+  DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
+  DATA.creches.features.forEach(f=>mk(f,'creche'));
 }
+function toggleMarkers(cat,on){markers[cat].forEach(el=>{el.style.display=on?'':'none';});}
 
-(async ()=>{
+document.getElementById('t-zones').addEventListener('change',e=>{vis.zones=e.target.checked;
+  ['zones-fill','zones-line'].forEach(L=>{if(map.getLayer(L))map.setLayoutProperty(L,'visibility',e.target.checked?'visible':'none');});});
+document.getElementById('t-social').addEventListener('change',e=>{vis.social=e.target.checked;
+  if(map.getLayer('social'))map.setLayoutProperty('social','visibility',e.target.checked?'visible':'none');});
+[['t-pub','pub'],['t-priv','priv'],['t-intl','intl'],['t-creches','creche']].forEach(([id,cat])=>
+  document.getElementById(id).addEventListener('change',e=>toggleMarkers(cat,e.target.checked)));
+document.getElementById('basemap').addEventListener('change',e=>map.setStyle(STYLES[e.target.value]));
+
+(async()=>{
   const [schools,creches,zones,social]=await Promise.all([
     gj('./data/schools.geojson'),gj('./data/creches.geojson'),
-    gj('./data/zones.geojson'),gj('./data/social_cascais.geojson')]);
+    gj('./data/zones_poly.geojson'),gj('./data/social_cascais.geojson')]);
   DATA={schools,creches,zones,social};
-  if(map.isStyleLoaded()) addData();
-  bindOnce();
+  if(map.isStyleLoaded())addLayers();
+  addMarkers();
 })();
 </script>
 </body>
