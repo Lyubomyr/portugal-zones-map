@@ -98,13 +98,12 @@ function addMarkers(){
   DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
   DATA.creches.features.forEach(f=>mk(f,'creche'));
 }
-function tryAdd(){ if(dataReady && map.isStyleLoaded()){ addLayers(); addMarkers(); } }
 let clicksBound=false;
 function ensureClicks(){ if(clicksBound||!map.getLayer('zones-fill'))return; clicksBound=true; bindLayerClicks(); }
-map.on('load',()=>{ tryAdd(); });
-map.on('style.load',tryAdd);
-map.on('styledata',tryAdd);
-map.on('idle',()=>{ tryAdd(); ensureClicks(); });
+const _initTimer=setInterval(()=>{
+  if(dataReady && map.isStyleLoaded()){ clearInterval(_initTimer); addLayers(); addMarkers(); ensureClicks(); }
+},150);
+map.on('style.load',()=>{ if(dataReady){ addLayers(); ensureClicks(); } });
 
 function toggleMarkers(cat,on){markers[cat].forEach(el=>{el.style.display=on?'':'none';});}
 document.getElementById('t-zones').addEventListener('change',e=>{vis.zones=e.target.checked;
@@ -120,7 +119,6 @@ document.getElementById('basemap').addEventListener('change',e=>map.setStyle(STY
     gj('./data/schools.geojson'),gj('./data/creches.geojson'),
     gj('./data/zones_poly.geojson'),gj('./data/social_cascais.geojson')]);
   DATA={schools,creches,zones,social}; dataReady=true;
-  tryAdd();
 })();
 </script>
 </body>
