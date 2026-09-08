@@ -34,10 +34,10 @@
  <div class="hd">Тип карти</div>
  <div class="row">
    <select id="basemap">
-     <option value="voyager">Вулиці (як Google)</option>
+     <option value="liberty">Вулиці (кольорові)</option>
+     <option value="bright">Світла</option>
      <option value="satellite">Супутник</option>
      <option value="positron">Мінімал (сіра)</option>
-     <option value="liberty">Яскрава (вектор)</option>
    </select>
  </div>
  <div class="hd">Зони (школа × соцжитло)</div>
@@ -48,53 +48,62 @@
  <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
  <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
  <label><input type="checkbox" id="t-social" checked><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
- <div class="note">Зони — рівень фрегезій (груба заливка). Пін-клік = деталі. Далі: садки з ресерчу, Oeiras-соцжитло, Leiria.</div>
+ <div class="note">Зони — межі впливу шкіл (~20, приблизні). Клік по зоні/піну = деталі. Панорамуй праворуч → Oeiras.</div>
 </div>
 <script>
 const RATING={green:'#2e9c3e',yellow:'#e0b400',red:'#d23b3b'};
 const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a'};
 const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶'};
-function raster(t,a){return {version:8,glyphs:'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',sources:{r:{type:'raster',tiles:t,tileSize:256,attribution:a}},layers:[{id:'r',type:'raster',source:'r'}]};}
 const STYLES={
-  voyager:raster(['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],'© OpenStreetMap © CARTO'),
-  positron:raster(['https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'],'© OpenStreetMap © CARTO'),
-  satellite:raster(['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],'Imagery © Esri'),
-  liberty:'https://tiles.openfreemap.org/styles/liberty'
+  liberty:'https://tiles.openfreemap.org/styles/liberty',
+  bright:'https://tiles.openfreemap.org/styles/bright',
+  positron:'https://tiles.openfreemap.org/styles/positron',
+  satellite:{version:8,glyphs:'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+    sources:{esri:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Imagery © Esri'}},
+    layers:[{id:'esri',type:'raster',source:'esri'}]}
 };
 const vis={zones:true,pub:true,priv:true,intl:true,creches:true,social:true};
-let DATA=null; const markers={pub:[],priv:[],intl:[],creche:[]};
-const map=new maplibregl.Map({container:'map',style:STYLES.voyager,center:[-9.30,38.71],zoom:11});
+let DATA=null, dataReady=false, markersAdded=false;
+const markers={pub:[],priv:[],intl:[],creche:[]};
+const map=new maplibregl.Map({container:'map',style:STYLES.liberty,center:[-9.30,38.71],zoom:11});
 map.addControl(new maplibregl.NavigationControl(),'top-right');
 map.addControl(new maplibregl.ScaleControl(),'bottom-left');
 const gj=u=>fetch(u).then(r=>r.json());
 const esc=s=>(s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 function addLayers(){
-  if(!DATA || map.getSource('zones')) return;
-  map.addSource('zones',{type:'geojson',data:DATA.zones});
-  map.addSource('social',{type:'geojson',data:DATA.social});
-  const rc=['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888'];
-  map.addLayer({id:'zones-fill',source:'zones',type:'fill',layout:{visibility:vis.zones?'visible':'none'},paint:{'fill-color':rc,'fill-opacity':0.28}});
-  map.addLayer({id:'zones-line',source:'zones',type:'line',layout:{visibility:vis.zones?'visible':'none'},paint:{'line-color':rc,'line-width':2,'line-opacity':0.85}});
-  map.addLayer({id:'social',source:'social',type:'circle',layout:{visibility:vis.social?'visible':'none'},paint:{
-    'circle-radius':['interpolate',['linear'],['coalesce',['get','fogos'],0],0,3,50,8,200,15],
-    'circle-color':'#1a1a1a','circle-opacity':0.7,'circle-stroke-color':'#fff','circle-stroke-width':0.8}});
-  map.on('click','zones-fill',e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">Зона: ${esc(e.features[0].properties.name)}</span>${esc(e.features[0].properties.info)}`).addTo(map));
-  map.on('click','social',e=>{const p=e.features[0].properties;new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">Соцжитло: ${esc(p.local)||'—'}</span>${esc(p.freg)} · ${p.fogos||0} fogos (${p.bldg||0} буд.)`).addTo(map);});
+  if(!dataReady) return;
+  if(map.getSource('zones')) return;
+  try{
+    map.addSource('zones',{type:'geojson',data:DATA.zones});
+    map.addSource('social',{type:'geojson',data:DATA.social});
+    const rc=['match',['get','rating'],'green',RATING.green,'yellow',RATING.yellow,'red',RATING.red,'#888'];
+    map.addLayer({id:'zones-fill',source:'zones',type:'fill',layout:{visibility:vis.zones?'visible':'none'},paint:{'fill-color':rc,'fill-opacity':0.35}});
+    map.addLayer({id:'zones-line',source:'zones',type:'line',layout:{visibility:vis.zones?'visible':'none'},paint:{'line-color':rc,'line-width':2,'line-opacity':0.9}});
+    map.addLayer({id:'social',source:'social',type:'circle',layout:{visibility:vis.social?'visible':'none'},paint:{
+      'circle-radius':['interpolate',['linear'],['coalesce',['get','fogos'],0],0,3,50,8,200,15],
+      'circle-color':'#1a1a1a','circle-opacity':0.7,'circle-stroke-color':'#fff','circle-stroke-width':0.8}});
+  }catch(e){ console.error('addLayers',e); }
 }
-map.on('style.load',addLayers);
-
+function bindLayerClicks(){
+  map.on('click','zones-fill',e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">🎓 Зона школи: ${esc(e.features[0].properties.name)}</span>${esc(e.features[0].properties.info)}`).addTo(map));
+  map.on('click','social',e=>{const p=e.features[0].properties;new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">🏚️ Соцжитло: ${esc(p.local)||'—'}</span>${esc(p.freg)} · ${p.fogos||0} fogos (${p.bldg||0} буд.)`).addTo(map);});
+}
 function pin(cat){const el=document.createElement('div');el.className='mk';el.style.background=COL[cat];el.innerHTML='<span>'+EMO[cat]+'</span>';return el;}
 function addMarkers(){
+  if(markersAdded||!dataReady)return; markersAdded=true;
   const mk=(f,cat)=>{const el=pin(cat);
     new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(f.geometry.coordinates)
       .setPopup(new maplibregl.Popup({offset:26}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${esc(f.properties.info)}`))
-      .addTo(map); markers[cat].push(el); };
+      .addTo(map); markers[cat].push(el);};
   DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
   DATA.creches.features.forEach(f=>mk(f,'creche'));
 }
-function toggleMarkers(cat,on){markers[cat].forEach(el=>{el.style.display=on?'':'none';});}
+function tryAdd(){ if(dataReady && map.isStyleLoaded()){ addLayers(); addMarkers(); } }
+map.on('load',()=>{ bindLayerClicks(); tryAdd(); });
+map.on('style.load',tryAdd);
 
+function toggleMarkers(cat,on){markers[cat].forEach(el=>{el.style.display=on?'':'none';});}
 document.getElementById('t-zones').addEventListener('change',e=>{vis.zones=e.target.checked;
   ['zones-fill','zones-line'].forEach(L=>{if(map.getLayer(L))map.setLayoutProperty(L,'visibility',e.target.checked?'visible':'none');});});
 document.getElementById('t-social').addEventListener('change',e=>{vis.social=e.target.checked;
@@ -107,9 +116,8 @@ document.getElementById('basemap').addEventListener('change',e=>map.setStyle(STY
   const [schools,creches,zones,social]=await Promise.all([
     gj('./data/schools.geojson'),gj('./data/creches.geojson'),
     gj('./data/zones_poly.geojson'),gj('./data/social_cascais.geojson')]);
-  DATA={schools,creches,zones,social};
-  if(map.isStyleLoaded())addLayers();
-  addMarkers();
+  DATA={schools,creches,zones,social}; dataReady=true;
+  tryAdd();
 })();
 </script>
 </body>
