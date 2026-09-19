@@ -62,6 +62,7 @@
 <script>
 const RATING={green:'#15803d',yellow:'#eab308',red:'#e11d48'};
 const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a',servico:'#111827',coworking:'#0891b2',martial:'#b45309',acting:'#7c3aed',nature:'#65a30d'};
+const RAWHTML=new Set(['servico','coworking','martial','acting','nature']);
 const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶',servico:'📌',coworking:'💻',martial:'🥋',acting:'🎭',nature:'🌳'};
 function raster(t,a){return {version:8,sources:{r:{type:'raster',tiles:t,tileSize:256,attribution:a}},layers:[{id:'r',type:'raster',source:'r'}]};}
 const STYLES={
@@ -102,7 +103,7 @@ function addMarkers(){
   if(markersAdded||!dataReady)return; markersAdded=true;
   const mk=(f,cat)=>{const el=pin(cat);
     new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(f.geometry.coordinates)
-      .setPopup(new maplibregl.Popup({offset:26}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${esc(f.properties.info)}`))
+      .setPopup(new maplibregl.Popup({offset:26,maxWidth:'330px'}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${RAWHTML.has(cat)?(f.properties.info||''):esc(f.properties.info)}`))
       .addTo(map); if(vis[cat]===false) el.style.display='none'; markers[cat].push(el);};
   DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
   DATA.creches.features.forEach(f=>mk(f,'creche'));
