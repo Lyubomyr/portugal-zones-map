@@ -50,12 +50,19 @@
  <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
  <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
  <label><input type="checkbox" id="t-social" checked><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
- <div class="note">🟢 найкращі: сильна básica + мало соцжитла. 🟡 нормальні (більшість). 🔴 уникати: задокументоване насильство. Академічні деталі — у кліку по піну. Зони — межі впливу шкіл (~20, приблизні). Панорамуй → Oeiras.</div>
+ <div class="hd">Послуги і документи</div>
+ <label><input type="checkbox" id="t-servico" checked><span class="sw" style="background:#111827"></span>Куди йти 📌</label>
+ <div class="hd">Активності</div>
+ <label><input type="checkbox" id="t-coworking"><span class="sw" style="background:#0891b2"></span>Коворкінги 💻</label>
+ <label><input type="checkbox" id="t-martial"><span class="sw" style="background:#b45309"></span>Бойові 🥋</label>
+ <label><input type="checkbox" id="t-acting"><span class="sw" style="background:#7c3aed"></span>Акторське 🎭</label>
+ <label><input type="checkbox" id="t-nature"><span class="sw" style="background:#65a30d"></span>Пляжі/озера/парки 🌳</label>
+ <div class="note">📌 «Куди йти» — точки з ресерчу: Loja Cascais (проїзний), Finanças (NIF), Segurança Social (abono), школа+CAF, Junta, посольство. Деталі в кліку.<br>🟢 найкращі: сильна básica + мало соцжитла. 🟡 нормальні (більшість). 🔴 уникати: задокументоване насильство. Академічні деталі — у кліку по піну. Зони — межі впливу шкіл (~20, приблизні). Панорамуй → Oeiras.</div>
 </div>
 <script>
 const RATING={green:'#15803d',yellow:'#eab308',red:'#e11d48'};
-const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a'};
-const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶'};
+const COL={pub:'#0050ef',priv:'#ff7a00',intl:'#d400a6',creche:'#00a37a',servico:'#111827',coworking:'#0891b2',martial:'#b45309',acting:'#7c3aed',nature:'#65a30d'};
+const EMO={pub:'🏫',priv:'🏫',intl:'🏫',creche:'👶',servico:'📌',coworking:'💻',martial:'🥋',acting:'🎭',nature:'🌳'};
 function raster(t,a){return {version:8,sources:{r:{type:'raster',tiles:t,tileSize:256,attribution:a}},layers:[{id:'r',type:'raster',source:'r'}]};}
 const STYLES={
   osm:raster(['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png','https://b.tile.openstreetmap.org/{z}/{x}/{y}.png','https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'],'© OpenStreetMap'),
@@ -63,9 +70,9 @@ const STYLES={
   liberty:'https://tiles.openfreemap.org/styles/liberty',
   positron:'https://tiles.openfreemap.org/styles/positron'
 };
-const vis={zones:true,pub:true,priv:true,intl:true,creches:true,social:true};
+const vis={zones:true,pub:true,priv:true,intl:true,creches:true,social:true,servico:true,coworking:false,martial:false,acting:false,nature:false};
 let DATA=null, dataReady=false, markersAdded=false;
-const markers={pub:[],priv:[],intl:[],creche:[]};
+const markers={pub:[],priv:[],intl:[],creche:[],servico:[],coworking:[],martial:[],acting:[],nature:[]};
 const map=new maplibregl.Map({container:'map',style:STYLES.osm,center:[-9.30,38.71],zoom:11});
 map.addControl(new maplibregl.NavigationControl(),'top-right');
 map.addControl(new maplibregl.ScaleControl(),'bottom-left');
@@ -96,9 +103,11 @@ function addMarkers(){
   const mk=(f,cat)=>{const el=pin(cat);
     new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(f.geometry.coordinates)
       .setPopup(new maplibregl.Popup({offset:26}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${esc(f.properties.info)}`))
-      .addTo(map); markers[cat].push(el);};
+      .addTo(map); if(!vis[cat]) el.style.display='none'; markers[cat].push(el);};
   DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
   DATA.creches.features.forEach(f=>mk(f,'creche'));
+  DATA.services.features.forEach(f=>mk(f,'servico'));
+  DATA.activities.features.forEach(f=>mk(f,f.properties.cat));
 }
 let clicksBound=false;
 function ensureClicks(){ if(clicksBound||!map.getLayer('zones-fill'))return; clicksBound=true; bindLayerClicks(); }
@@ -114,15 +123,16 @@ document.getElementById('t-zones').addEventListener('change',e=>{vis.zones=e.tar
   ['zones-fill','zones-line'].forEach(L=>{if(map.getLayer(L))map.setLayoutProperty(L,'visibility',e.target.checked?'visible':'none');});});
 document.getElementById('t-social').addEventListener('change',e=>{vis.social=e.target.checked;
   if(map.getLayer('social'))map.setLayoutProperty('social','visibility',e.target.checked?'visible':'none');});
-[['t-pub','pub'],['t-priv','priv'],['t-intl','intl'],['t-creches','creche']].forEach(([id,cat])=>
+[['t-pub','pub'],['t-priv','priv'],['t-intl','intl'],['t-creches','creche'],['t-servico','servico'],['t-coworking','coworking'],['t-martial','martial'],['t-acting','acting'],['t-nature','nature']].forEach(([id,cat])=>
   document.getElementById(id).addEventListener('change',e=>toggleMarkers(cat,e.target.checked)));
 document.getElementById('basemap').addEventListener('change',e=>map.setStyle(STYLES[e.target.value]));
 
 (async()=>{
-  const [schools,creches,zones,social]=await Promise.all([
+  const [schools,creches,zones,social,services,activities]=await Promise.all([
     gj('./data/schools.geojson'),gj('./data/creches.geojson'),
-    gj('./data/zones_poly.geojson'),gj('./data/social_cascais.geojson')]);
-  DATA={schools,creches,zones,social}; dataReady=true;
+    gj('./data/zones_poly.geojson'),gj('./data/social_cascais.geojson'),
+    gj('./data/services.geojson'),gj('./data/activities.geojson')]);
+  DATA={schools,creches,zones,social,services,activities}; dataReady=true;
 })();
 </script>
 </body>
