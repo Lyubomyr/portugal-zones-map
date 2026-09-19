@@ -1,0 +1,110 @@
+{
+"type": "FeatureCollection",
+"features": [
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.3562441,
+38.6898992
+]
+},
+"properties": {
+"name": "Loja Cascais — Parede",
+"cat": "servico",
+"info": "🎫 Картка <b>Viver Cascais</b> — безкоштовний проїзд автобусами по концелью. Доводиш адресу, не статус: рахунок/certidão de domicílio fiscal/atestado Junta, не старший 3 міс.<br>пн–пт 9:00–18:00 · 800 203 186<br>📍 Estação de Inovação Social, Rua das Clementinas, Parede (біля вокзалу)<br>💡 Тут же анонсували майбутній Espaço AIMA Cascais"
+}
+},
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.3494012,
+38.7136218
+]
+},
+"properties": {
+"name": "Loja Cascais — Tires",
+"cat": "servico",
+"info": "🎫 Те саме, що Parede: Viver Cascais + муніципальні послуги.<br>пн–пт 9:00–18:00 · 800 203 186 (Espaço Cidadão 300 003 990)<br>📍 Praça Fernando Lopes Graça 156A"
+}
+},
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.422754,
+38.69941
+]
+},
+"properties": {
+"name": "Loja do Cidadão Cascais — Viver Cascais + Segurança Social",
+"cat": "servico",
+"info": "Дві справи в одній будівлі:<br>• <b>Piso -1</b> — Loja Cascais: картка Viver Cascais, пн–пт 9:00–18:00<br>• <b>Piso 0</b> — <b>Segurança Social</b>, 9:00–16:00: сюди подавати <b>abono de família на Єву НА ПАПЕРІ</b> (Mod. RP5045 + Mod. RV1014 — обходить відсутність NISS). ~88 €/міс, кожен місяць зволікання втрачається назавжди.<br>📍 Rua Manuel Joaquim Avelar 118 · ☎ 300 003 990 / 300 502 502<br>⚠️ координата вулична, не під'їзд"
+}
+},
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.3458784,
+38.706997
+]
+},
+"properties": {
+"name": "Escola Básica e Secundária Matilde Rosa Araújo",
+"cat": "servico",
+"info": "🎒 Школа Ані, 5ºF. Тут же <b>CAF — продовжений день</b>: пн–пт 14:30–18:30, 50 €/міс + 10 € за запис, обіди окремо.<br>Картка учня обов'язкова на вхід і вихід щодня.<br>На прохідній батько = відвідувач: документ → реєстрація → чекаєш зовні → у супроводі (ст.117 регламенту).<br>☎ 214 528 340"
+}
+},
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.341745,
+38.701495
+]
+},
+"properties": {
+"name": "Junta de Freguesia de São Domingos de Rana",
+"cat": "servico",
+"info": "🏢 Організатор <b>CAF</b> (продовженого дня). Запис онлайн jf-sdrana.pt.<br>Координаторка шкіл <b>Sandra Fernandes 938 442 111</b> — їй питання про час забирання і escalão.<br>Каса: оплата CAF числа 1–8 місяця, пн–пт 9:00–12:30 і 13:30–17:00<br>📍 Rua D. Duarte de Meneses 12 · ☎ 214 549 190"
+}
+},
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.3385946,
+38.6901899
+]
+},
+"properties": {
+"name": "Serviço de Finanças Cascais-2",
+"cat": "servico",
+"info": "💶 <b>Наша податкова</b> (код 3433, охоплює Carcavelos/Parede/S.D.Rana) — і вона в <b>Parede</b>, не в Кашкайші.<br>Сюди по <b>NIF Єви</b>: просити резидентський, подавати assento de nascimento (не паспорт — з ним вимагають візу).<br>Дадуть нерезидентський — брати: доктрина AT каже, що резидентство перевіряють у платника, не в дитини. 900 € вирахування не втрачаються.<br>Безкоштовно · запис CAT 217 206 707 · ☎ 214 584 510<br>📍 Rua Dr. José Joaquim de Almeida 905, Parede"
+}
+},
+{
+"type": "Feature",
+"geometry": {
+"type": "Point",
+"coordinates": [
+-9.2155951,
+38.7066399
+]
+},
+"properties": {
+"name": "Посольство України в Португалії",
+"cat": "servico",
+"info": "🇺🇦 Документ, що я живу за кордоном (для оформлення догляду за батьком братом):<br>• <b>Довідка про перебування на консульському обліку</b> — 18 €, <b>БЕЗ запису</b>, Вікно 2-3, пн/ср/чт/пт 10:00–13:00, вт 15:00–18:00. Адресу приймають за CAR або довідкою з Junta.<br>• <b>Нотаріально засвідчена заява</b> у вільній формі — за записом id.e-consul.gov.ua<br>🔴 СПЕРШУ: BankID → Резерв+ → <b>е-ВОД</b>, оновлений не пізніше ніж за 72 год. Без нього чоловіків 18–60 не приймають.<br>🔴 ЦНАП в Україні бере тільки ОРИГІНАЛИ.<br>📍 Avenida das Descobertas 18, Lisboa · ☎ 213 010 043"
+}
+}
+]
+}
