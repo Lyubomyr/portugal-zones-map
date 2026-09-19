@@ -103,7 +103,7 @@ function addMarkers(){
   const mk=(f,cat)=>{const el=pin(cat);
     new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(f.geometry.coordinates)
       .setPopup(new maplibregl.Popup({offset:26}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${esc(f.properties.info)}`))
-      .addTo(map); if(!vis[cat]) el.style.display='none'; markers[cat].push(el);};
+      .addTo(map); if(vis[cat]===false) el.style.display='none'; markers[cat].push(el);};
   DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
   DATA.creches.features.forEach(f=>mk(f,'creche'));
   DATA.services.features.forEach(f=>mk(f,'servico'));
