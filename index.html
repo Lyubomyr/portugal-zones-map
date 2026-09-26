@@ -22,6 +22,7 @@
  .note{color:#666;font-size:11px;margin-top:8px;border-top:1px solid #eee;padding-top:6px}
  .maplibregl-popup-content{font:13px system-ui;max-width:260px}
  .pt{font-weight:600;display:block;margin-bottom:2px}
+ .nav{display:flex;gap:6px;margin-top:8px} .nav a{flex:1;text-align:center;padding:6px 4px;border-radius:6px;background:#1a73e8;color:#fff;text-decoration:none;font-weight:600;font-size:12px} .nav a.sec{background:#e8f0fe;color:#1a73e8}
  .maplibregl-marker{z-index:3}
  .mk{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
    border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s}
@@ -104,12 +105,16 @@ function bindLayerClicks(){
   map.on('click','zones-fill',e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">🎓 Зона школи: ${esc(e.features[0].properties.name)}</span>${esc(e.features[0].properties.info)}`).addTo(map));
   map.on('click','social',e=>{const p=e.features[0].properties;new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span class="pt">🏚️ Соцжитло: ${esc(p.local)||'—'}</span>${esc(p.freg)} · ${p.fogos||0} fogos (${p.bldg||0} буд.)`).addTo(map);});
 }
+function nav(f){const[lon,lat]=f.geometry.coordinates,p=f.properties,ll=lat+','+lon,
+  q=p.place_id?`query=${encodeURIComponent(p.gname||p.name)}&query_place_id=${p.place_id}`:`query=${ll}`,
+  d=p.place_id?`destination=${encodeURIComponent(p.gname||p.name)}&destination_place_id=${p.place_id}`:`destination=${ll}`;
+  return `<div class="nav"><a class="sec" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&${q}">📍 Google Maps</a><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&${d}">🧭 Маршрут</a></div>`;}
 function pin(cat){const el=document.createElement('div');el.className='mk';el.style.background=COL[cat];el.innerHTML='<span>'+EMO[cat]+'</span>';return el;}
 function addMarkers(){
   if(markersAdded||!dataReady)return; markersAdded=true;
   const mk=(f,cat)=>{const el=pin(cat);
     new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(f.geometry.coordinates)
-      .setPopup(new maplibregl.Popup({offset:26,maxWidth:'330px'}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${RAWHTML.has(cat)?(f.properties.info||''):esc(f.properties.info)}`))
+      .setPopup(new maplibregl.Popup({offset:26,maxWidth:'330px'}).setHTML(`<span class="pt">${esc(f.properties.name)}</span>${RAWHTML.has(cat)?(f.properties.info||''):esc(f.properties.info)}${nav(f)}`))
       .addTo(map); if(vis[cat]===false) el.style.display='none'; markers[cat].push(el);};
   DATA.schools.features.forEach(f=>mk(f,f.properties.cat));
   DATA.creches.features.forEach(f=>mk(f,'creche'));
