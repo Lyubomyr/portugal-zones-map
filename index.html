@@ -10,13 +10,15 @@
 <style>
  html,body{margin:0;height:100%;font-family:system-ui,Arial,sans-serif}
  #map{position:absolute;inset:0}
- .panel{position:absolute;top:10px;left:10px;z-index:2;background:#fff;border-radius:8px;
+ .panel{position:absolute;top:10px;left:10px;z-index:10;background:#fff;border-radius:8px;
    box-shadow:0 1px 6px rgba(0,0,0,.35);padding:10px 12px;font-size:13px;max-width:250px}
  .panel h1{font-size:14px;margin:0 0 6px}
  .panel label{display:block;margin:3px 0;cursor:pointer;line-height:1.6}
  .sw{display:inline-block;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(45deg);margin:0 8px 0 2px;vertical-align:-3px;border:2px solid #fff;box-shadow:0 0 0 1px #888}
  .cir{display:inline-block;width:14px;height:14px;border-radius:50%;margin:0 8px 0 2px;vertical-align:-2px;border:2px solid #fff;box-shadow:0 0 0 1px #888}
  .zsw{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:4px;vertical-align:-2px;opacity:.65}
+ .grp{margin-top:6px} .gh{display:block;cursor:pointer;margin:8px 0 2px!important} .gh input{margin-right:6px}
+ .panel{max-height:calc(100vh - 40px);overflow-y:auto}
  .row{margin:2px 0 8px} .row select{width:100%;padding:4px;font-size:13px}
  .hd{font-weight:600;margin:8px 0 2px;font-size:12px;color:#555}
  .note{color:#666;font-size:11px;margin-top:8px;border-top:1px solid #eee;padding-top:6px}
@@ -33,7 +35,7 @@
 <body>
 <div id="map"></div>
 <div class="panel">
- <h1>🇵🇹 Школи · садки · зони</h1>
+ <h1>🇵🇹 Сімейна карта</h1>
  <div class="hd">Тип карти</div>
  <div class="row">
    <select id="basemap">
@@ -43,27 +45,33 @@
      <option value="positron">Мінімал (сіра)</option>
    </select>
  </div>
- <div class="hd">Зони (школа × соцжитло)</div>
- <label><input type="checkbox" id="t-zones" checked><span class="zsw" style="background:#15803d"></span><span class="zsw" style="background:#eab308"></span><span class="zsw" style="background:#e11d48"></span>площі 🟢🟡🔴</label>
- <div class="hd">Точки</div>
- <label><input type="checkbox" id="t-pub" checked><span class="sw" style="background:#0050ef"></span>Держшколи 🏫</label>
- <label><input type="checkbox" id="t-priv" checked><span class="sw" style="background:#ff7a00"></span>Приватні школи 🏫</label>
- <label><input type="checkbox" id="t-intl" checked><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
- <label><input type="checkbox" id="t-creches" checked><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
- <label><input type="checkbox" id="t-social" checked><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
- <div class="hd">Послуги і документи</div>
- <label><input type="checkbox" id="t-servico" checked><span class="sw" style="background:#111827"></span>Куди йти 📌</label>
- <label><input type="checkbox" id="t-housing" checked><span class="sw" style="background:#854d0e"></span>Житло 🏠</label>
+ <div class="grp" data-g="daily"><label class="hd gh"><input type="checkbox" class="gall">☀️ Щодня</label>
+ <label><input type="checkbox" id="t-resto" checked><span class="sw" style="background:#e11d48"></span>Ресторани (вегетаріанські) 🍽️</label>
+ <label><input type="checkbox" id="t-nature" checked><span class="sw" style="background:#65a30d"></span>Парки, пляжі, озера 🌳</label>
+ <label><input type="checkbox" id="t-leisure" checked><span class="sw" style="background:#0284c7"></span>Відпочинок, басейни, музеї 🏖️</label>
+ <label><input type="checkbox" id="t-shop" checked><span class="sw" style="background:#a21caf"></span>Магазини, барбери 🛒</label>
+ </div>
+ <div class="grp" data-g="kids"><label class="hd gh"><input type="checkbox" class="gall">👨‍👩‍👧 Діти і здоров'я</label>
+ <label><input type="checkbox" id="t-creches"><span class="sw" style="background:#00a37a"></span>Ясла/садки 👶</label>
+ <label><input type="checkbox" id="t-pub"><span class="sw" style="background:#0050ef"></span>Держшколи 🏫</label>
+ <label><input type="checkbox" id="t-priv"><span class="sw" style="background:#ff7a00"></span>Приватні школи 🏫</label>
+ <label><input type="checkbox" id="t-intl"><span class="sw" style="background:#d400a6"></span>Міжнародні школи 🏫</label>
  <label><input type="checkbox" id="t-health"><span class="sw" style="background:#dc2626"></span>Лікарі і клініки 🏥</label>
- <label><input type="checkbox" id="t-leisure"><span class="sw" style="background:#0284c7"></span>Відпочинок, басейни, музеї 🏖️</label>
+ </div>
+ <div class="grp" data-g="life"><label class="hd gh"><input type="checkbox" class="gall">🧾 Побут</label>
+ <label><input type="checkbox" id="t-servico"><span class="sw" style="background:#111827"></span>Документи, куди йти 📌</label>
  <label><input type="checkbox" id="t-car"><span class="sw" style="background:#475569"></span>Авто — СТО і запчастини 🔧</label>
- <label><input type="checkbox" id="t-shop"><span class="sw" style="background:#a21caf"></span>Магазини, барбери 🛒</label>
- <div class="hd">Активності</div>
+ </div>
+ <div class="grp" data-g="home"><label class="hd gh"><input type="checkbox" class="gall">🏠 Житло і райони</label>
+ <label><input type="checkbox" id="t-housing"><span class="sw" style="background:#854d0e"></span>Житло 🏠</label>
+ <label><input type="checkbox" id="t-zones"><span class="zsw" style="background:#15803d"></span><span class="zsw" style="background:#eab308"></span><span class="zsw" style="background:#e11d48"></span>Зони шкіл 🟢🟡🔴</label>
+ <label><input type="checkbox" id="t-social"><span class="cir" style="background:#1a1a1a"></span>Соцжитло (щільність)</label>
+ </div>
+ <div class="grp" data-g="act"><label class="hd gh"><input type="checkbox" class="gall">🎯 Заняття</label>
  <label><input type="checkbox" id="t-coworking"><span class="sw" style="background:#0891b2"></span>Коворкінги 💻</label>
  <label><input type="checkbox" id="t-martial"><span class="sw" style="background:#b45309"></span>Бойові 🥋</label>
  <label><input type="checkbox" id="t-acting"><span class="sw" style="background:#7c3aed"></span>Акторське 🎭</label>
- <label><input type="checkbox" id="t-nature"><span class="sw" style="background:#65a30d"></span>Пляжі/озера/парки 🌳</label>
- <label><input type="checkbox" id="t-resto"><span class="sw" style="background:#e11d48"></span>Ресторани (вегетаріанські) 🍽️</label>
+ </div>
  <div class="note">📌 «Куди йти» — точки з ресерчу: Loja Cascais (проїзний), Finanças (NIF), Segurança Social (abono), школа+CAF, Junta, посольство. Деталі в кліку.<br>🟢 найкращі: сильна básica + мало соцжитла. 🟡 нормальні (більшість). 🔴 уникати: задокументоване насильство. Академічні деталі — у кліку по піну. Зони — межі впливу шкіл (~20, приблизні). Панорамуй → Oeiras.</div>
 </div>
 <script>
@@ -78,7 +86,7 @@ const STYLES={
   liberty:'https://tiles.openfreemap.org/styles/liberty',
   positron:'https://tiles.openfreemap.org/styles/positron'
 };
-const vis={zones:true,pub:true,priv:true,intl:true,creches:true,social:true,servico:true,health:false,leisure:false,car:false,shop:false,housing:true,coworking:false,martial:false,acting:false,nature:false,resto:false};
+const vis={zones:false,social:false,pub:false,priv:false,intl:false,creches:false,creche:false,servico:false,health:false,leisure:true,car:false,shop:true,housing:false,coworking:false,martial:false,acting:false,nature:true,resto:true};
 let DATA=null, dataReady=false, markersAdded=false;
 const markers={pub:[],priv:[],intl:[],creche:[],servico:[],health:[],leisure:[],car:[],shop:[],housing:[],coworking:[],martial:[],acting:[],nature:[],resto:[]};
 const map=new maplibregl.Map({container:'map',style:STYLES.osm,center:[-9.30,38.71],zoom:11});
@@ -138,6 +146,10 @@ document.getElementById('t-social').addEventListener('change',e=>{vis.social=e.t
   if(map.getLayer('social'))map.setLayoutProperty('social','visibility',e.target.checked?'visible':'none');});
 [['t-pub','pub'],['t-priv','priv'],['t-intl','intl'],['t-creches','creche'],['t-servico','servico'],['t-housing','housing'],['t-health','health'],['t-leisure','leisure'],['t-car','car'],['t-shop','shop'],['t-coworking','coworking'],['t-martial','martial'],['t-acting','acting'],['t-nature','nature'],['t-resto','resto']].forEach(([id,cat])=>
   document.getElementById(id).addEventListener('change',e=>toggleMarkers(cat,e.target.checked)));
+const syncGroups=()=>document.querySelectorAll('.grp').forEach(g=>{const cs=[...g.querySelectorAll('label:not(.gh) input')],n=cs.filter(c=>c.checked).length,a=g.querySelector('.gall');a.checked=n===cs.length;a.indeterminate=n>0&&n<cs.length;});
+document.querySelectorAll('.grp').forEach(g=>{g.querySelector('.gall').addEventListener('change',e=>{const on=e.target.checked;g.querySelectorAll('label:not(.gh) input').forEach(c=>{if(c.checked!==on){c.checked=on;c.dispatchEvent(new Event('change'));}});syncGroups();});
+  g.querySelectorAll('label:not(.gh) input').forEach(c=>c.addEventListener('change',syncGroups));});
+syncGroups();
 document.getElementById('basemap').addEventListener('change',e=>map.setStyle(STYLES[e.target.value]));
 
 (async()=>{
